@@ -32,6 +32,7 @@ const handleNicknameSubmit = (event) => {
   const input = nicknameForm.querySelector("input");
 
   socket.send(modifyJsonToString("nickname", input.value));
+  input.value = "";
 };
 
 const handleMessageSubmit = (event) => {
