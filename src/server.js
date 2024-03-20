@@ -1,6 +1,6 @@
 import http from "http";
-import { WebSocketServer } from "ws";
-import express, { application } from "express";
+import { Server } from "socket.io";
+import express from "express";
 
 const app = express();
 
@@ -14,38 +14,44 @@ app.get("/*", (req, res) => res.redirect("/"));
 
 const handleListen = () => console.log("Listening on http://localhost:3000");
 
-const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const httpServer = http.createServer(app);
+const wsServer = new Server(httpServer);
 
-const sockets = [];
-
-wss.on("connection", (socket) => {
-  sockets.push(socket);
-
-  socket["nickname"] = "Anonymous";
-
-  console.log("Connected to Browser!");
-
-  socket.on("close", () => {
-    console.log("Disconnected from the Browser!");
-  });
-
-  socket.on("message", (message) => {
-    const parsedMessage = JSON.parse(message)
-
-    switch (parsedMessage.type) {
-      case "newMessage":
-        sockets.forEach((aSocket) => {
-          aSocket.send(`${socket.nickname}: ${parsedMessage.payload}`);
-        });
-
-        break
-      case "nickname":
-        socket["nickname"] = parsedMessage.payload;
-        
-        break
-    }
-  });
+wsServer.on("connection", (socket) => {
+  console.log(socket);
 });
 
-server.listen(3000, handleListen);
+// const wss = new WebSocketServer({ server });
+
+// const sockets = [];
+
+// wss.on("connection", (socket) => {
+//   sockets.push(socket);
+
+//   socket["nickname"] = "Anonymous";
+
+//   console.log("Connected to Browser!");
+
+//   socket.on("close", () => {
+//     console.log("Disconnected from the Browser!");
+//   });
+
+//   socket.on("message", (message) => {
+//     const parsedMessage = JSON.parse(message)
+
+//     switch (parsedMessage.type) {
+//       case "newMessage":
+//         sockets.forEach((aSocket) => {
+//           aSocket.send(`${socket.nickname}: ${parsedMessage.payload}`);
+//         });
+
+//         break
+//       case "nickname":
+//         socket["nickname"] = parsedMessage.payload;
+
+//         break
+//     }
+//   });
+// });
+
+httpServer.listen(3000, handleListen);
