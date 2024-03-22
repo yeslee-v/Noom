@@ -18,12 +18,10 @@ const httpServer = http.createServer(app);
 const wsServer = new Server(httpServer);
 
 wsServer.on("connection", (socket) => {
-  socket.on("enter_room", (message, done) => {
-    console.log(message);
+  socket.on("enter_room", (roomName, done) => {
+    socket.join(roomName);
 
-    setTimeout(() => {
-      done();
-    }, 10000);
+    done();
   });
 });
 
