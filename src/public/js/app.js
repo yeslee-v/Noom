@@ -67,6 +67,19 @@ const handleRoomSubmit = () => {
 nicknameForm.addEventListener("submit", handleNicknameSubmit);
 welcomeForm.addEventListener("submit", handleRoomSubmit);
 
+const showRoomList = (rooms) => {
+  const roomList = welcome.querySelector("ul");
+
+  roomList.innerHTML = "";
+
+  rooms.forEach((room) => {
+    const li = document.createElement("li");
+
+    li.innerText = room;
+    roomList.appendChild(li);
+  });
+};
+
 socket.on("welcome", (nickname) => {
   sendMessage(`${nickname} join!`);
 });
@@ -76,3 +89,5 @@ socket.on("bye", (nickname) => {
 });
 
 socket.on("new_message", sendMessage);
+
+socket.on("change_room", showRoomList);
