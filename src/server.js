@@ -30,6 +30,12 @@ const getPublicRooms = () => {
   return publicRoomList;
 };
 
+const countRoomMember = (roomName) => {
+  const { rooms } = wsServer.sockets.adapter;
+
+  return rooms.get(roomName)?.size;
+};
+
 wsServer.on("connection", (socket) => {
   socket["nickname"] = "Anonymous";
 
@@ -44,13 +50,16 @@ wsServer.on("connection", (socket) => {
 
     done();
 
-    socket.to(roomName).emit("welcome", socket.nickname);
+    socket
+      .to(roomName)
+      .emit("welcome", socket.nickname, countRoomMember(roomName));
+
     wsServer.sockets.emit("change_room", getPublicRooms());
   });
 
   socket.on("disconnecting", () => {
     socket.rooms.forEach((room) =>
-      socket.to(room).emit("bye", socket.nickname)
+      socket.to(room).emit("bye", socket.nickname, countRoomMember(room) - 1)
     );
   });
 

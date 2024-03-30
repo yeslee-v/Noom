@@ -43,15 +43,22 @@ const handleMessageSubmit = (event) => {
   input.value = "";
 };
 
-const showRoom = () => {
+const showMessageForm = () => {
+  const messageForm = room.querySelector("#message");
+
+  messageForm.addEventListener("submit", handleMessageSubmit);
+};
+
+const showRoom = (countRoomMember) => {
   welcome.hidden = true;
   room.hidden = false;
 
   const h2 = room.querySelector("h2");
-  h2.innerText = `Room ${roomName}`;
+  h2.innerText =
+    `Room ${roomName} ` +
+    `(${countRoomMember === undefined ? 1 : countRoomMember})`;
 
-  const messageForm = room.querySelector("#message");
-  messageForm.addEventListener("submit", handleMessageSubmit);
+  showMessageForm();
 };
 
 const handleRoomSubmit = () => {
@@ -80,11 +87,13 @@ const showRoomList = (rooms) => {
   });
 };
 
-socket.on("welcome", (nickname) => {
+socket.on("welcome", (nickname, countRoomMember) => {
+  showRoom(countRoomMember);
   sendMessage(`${nickname} join!`);
 });
 
-socket.on("bye", (nickname) => {
+socket.on("bye", (nickname, countRoomMember) => {
+  showRoom(countRoomMember);
   sendMessage(`${nickname} left!`);
 });
 
