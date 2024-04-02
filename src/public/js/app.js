@@ -5,38 +5,72 @@ const myFace = document.getElementById("myFace");
 
 const muteButton = video.querySelector("#mute");
 const cameraButton = video.querySelector("#camera");
+const selectCcameras = video.querySelector("#cameras");
 
 let myStream;
 let isMutedAudio = false;
 let isCameraOff = false;
 
-const getMedia = async (constraints) => {
+const getCameras = async () => {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter((device) => device.kind === "videoinput");
+
+    cameras.forEach((camera) => {
+      const option = document.createElement("option");
+
+      option.value = camera.deviceId;
+      option.innerText = camera.label;
+      selectCcameras.appendChild(option);
+    });
+  } catch (err) {
+    console.error(`[getMedia] ${err.name}: ${err.message}`);
+  }
+};
+
+const getMedia = async () => {
   try {
     myStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: true,
     });
 
-    console.log("my stream: ", myStream);
-
     myFace.srcObject = myStream;
-  } catch (error) {
-    console.log("error: ", error);
+
+    getCameras();
+  } catch (err) {
+    console.error(`[getMedia] ${err.name}: ${err.message}`);
   }
 };
 
 getMedia();
 
 const handleMuteClick = () => {
-  console.log("mute");
-  muteButton.innerText = isMutedAudio ? "Mute" : "Unmute";
-  !isMutedAudio;
+  myStream.getAudioTracks().forEach((track) => {
+    track.enabled = !track.enabled;
+  });
+
+  if (isMutedAudio) {
+    muteButton.innerText = "Mute";
+    isMutedAudio = false;
+  } else {
+    muteButton.innerText = "Unmute";
+    isMutedAudio = true;
+  }
 };
 
 const handleCameraClick = () => {
-  console.log("camera");
-  cameraButton.innerText = isCameraOff ? "Turn Camera Off" : "Turn Camera On";
-  !isCameraOff;
+  myStream.getVideoTracks().forEach((track) => {
+    track.enabled = !track.enabled;
+  });
+
+  if (isCameraOff) {
+    cameraButton.innerText = "Turn Camera Off";
+    isCameraOff = false;
+  } else {
+    cameraButton.innerText = "Turn Camera On";
+    isCameraOff = true;
+  }
 };
 
 muteButton.addEventListener("click", handleMuteClick);
