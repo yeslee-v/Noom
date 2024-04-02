@@ -5,7 +5,7 @@ const myFace = document.getElementById("myFace");
 
 const muteButton = video.querySelector("#mute");
 const cameraButton = video.querySelector("#camera");
-const selectCcameras = video.querySelector("#cameras");
+const selectedCamera = video.querySelector("#cameras");
 
 let myStream;
 let isMutedAudio = false;
@@ -15,29 +15,41 @@ const getCameras = async () => {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const cameras = devices.filter((device) => device.kind === "videoinput");
+    const currentCamera = myStream.getVideoTracks()[0];
 
     cameras.forEach((camera) => {
       const option = document.createElement("option");
 
       option.value = camera.deviceId;
       option.innerText = camera.label;
-      selectCcameras.appendChild(option);
+
+      if (currentCamera.label === camera.label) {
+        option.selected = true;
+      }
+
+      selectedCamera.appendChild(option);
     });
   } catch (err) {
     console.error(`[getMedia] ${err.name}: ${err.message}`);
   }
 };
 
-const getMedia = async () => {
+const getMedia = async (deviceId) => {
+  const constraint = {
+    audio: true,
+    video: deviceId
+      ? { deviceId }
+      : {
+          facingMode: "environment",
+        },
+  };
+
   try {
-    myStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    });
+    myStream = await navigator.mediaDevices.getUserMedia(constraint);
 
     myFace.srcObject = myStream;
 
-    getCameras();
+    !deviceId && (await getCameras());
   } catch (err) {
     console.error(`[getMedia] ${err.name}: ${err.message}`);
   }
@@ -50,13 +62,8 @@ const handleMuteClick = () => {
     track.enabled = !track.enabled;
   });
 
-  if (isMutedAudio) {
-    muteButton.innerText = "Mute";
-    isMutedAudio = false;
-  } else {
-    muteButton.innerText = "Unmute";
-    isMutedAudio = true;
-  }
+  muteButton.innerText = isMutedAudio ? "Mute" : "Unmute";
+  isMutedAudio = isMutedAudio ? false : true;
 };
 
 const handleCameraClick = () => {
@@ -64,17 +71,19 @@ const handleCameraClick = () => {
     track.enabled = !track.enabled;
   });
 
-  if (isCameraOff) {
-    cameraButton.innerText = "Turn Camera Off";
-    isCameraOff = false;
-  } else {
-    cameraButton.innerText = "Turn Camera On";
-    isCameraOff = true;
-  }
+  cameraButton.innerText = isCameraOff ? "Turn Camera Off" : "Turn Camera On";
+  isCameraOff = isCameraOff ? false : true;
+};
+
+const handleCameraChange = async () => {
+  const deviceId = selectedCamera.value;
+
+  await getMedia(deviceId);
 };
 
 muteButton.addEventListener("click", handleMuteClick);
 cameraButton.addEventListener("click", handleCameraClick);
+selectedCamera.addEventListener("input", handleCameraChange);
 
 // const nickname = document.getElementById("nickname");
 // const nicknameForm = nickname.querySelector("form");
