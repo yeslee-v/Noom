@@ -64,6 +64,11 @@ wsServer.on("connection", (socket) => {
     socket.to(roomName).emit("welcome");
   });
 
+  // send offer to all members in the room except the sender
+  socket.on("offer", (offer, roomName) => {
+    socket.to(roomName).emit("offer", offer);
+  });
+
   socket.on("disconnecting", () => {
     socket.rooms.forEach((room) =>
       socket.to(room).emit("bye", socket.nickname, countRoomMember(room) - 1)
