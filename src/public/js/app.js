@@ -92,7 +92,7 @@ muteButton.addEventListener("click", handleMuteClick);
 cameraButton.addEventListener("click", handleCameraClick);
 selectedCamera.addEventListener("input", handleCameraChange);
 
-const startMedia = async () => {
+const initCall = async () => {
   welcome.hidden = true;
   call.hidden = false;
 
@@ -104,8 +104,8 @@ const handleWelcomeSubmit = async (event) => {
   event.preventDefault();
 
   const input = welcomeForm.querySelector("input");
-
-  socket.emit("enter_room", input.value, startMedia);
+  await initCall();
+  socket.emit("enter_room", input.value);
   roomName = input.value;
   input.value = "";
 };
@@ -122,7 +122,15 @@ socket.on("welcome", async () => {
 
 // run on receiver: PeerB
 socket.on("offer", async (offer) => {
-  console.log(offer);
+  myPeerConnection.setRemoteDescription(offer);
+
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  socket.emit("answer", answer, roomName);
+});
+
+socket.on("answer", (answer) => {
+  myPeerConnection.setRemoteDescription(answer);
 });
 
 const makeConnection = () => {

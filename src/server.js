@@ -56,10 +56,8 @@ wsServer.on("connection", (socket) => {
 
   socket.on("new_nickname", (nickname) => (socket["nickname"] = nickname));
 
-  socket.on("enter_room", (roomName, done) => {
+  socket.on("enter_room", (roomName) => {
     socket.join(roomName);
-
-    done();
 
     socket.to(roomName).emit("welcome");
   });
@@ -67,6 +65,10 @@ wsServer.on("connection", (socket) => {
   // send offer to all members in the room except the sender
   socket.on("offer", (offer, roomName) => {
     socket.to(roomName).emit("offer", offer);
+  });
+
+  socket.on("answer", (answer, roomName) => {
+    socket.to(roomName).emit("answer", answer);
   });
 
   socket.on("disconnecting", () => {
