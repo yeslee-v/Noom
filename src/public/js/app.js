@@ -133,10 +133,26 @@ socket.on("answer", (answer) => {
   myPeerConnection.setRemoteDescription(answer);
 });
 
+socket.on("ice", (ice) => {
+  myPeerConnection.addIceCandidate(ice);
+});
+
 const makeConnection = () => {
   myPeerConnection = new RTCPeerConnection();
 
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+};
+
+const handleIce = (data) => {
+  socket.emit("ice", data.candidate, roomName);
+};
+
+const handleAddStream = (data) => {
+  const peerFace = document.getElementById("peerFace");
+
+  peerFace.srcObject = data.stream;
 };
